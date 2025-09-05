@@ -40,12 +40,12 @@ export const PRIMARY_MISSIONS: Primary[] = [
 export const DEPLOYMENTS: Deployment[] = [
   {
     name: 'Dawn of War',
-    tip: '12\" no-man\u2019s land across the center.',
+    tip: '12" no-man\u2019s land across the center.',
     tags: [MissionTag.Mobility],
   },
   {
     name: 'Search and Destroy',
-    tip: 'Diagonal deployment with 9\" gap.',
+    tip: 'Diagonal deployment with 9" gap.',
     tags: [MissionTag.Hold],
   },
   {
