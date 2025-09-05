@@ -1,22 +1,16 @@
 import { useState } from 'react'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import MissionWizard from '@/pregame/MissionWizard'
 import EnemySelector from '@/pregame/EnemySelector'
-import type { MissionTag, EnemyTag } from '@/data/types'
+import GameplayShell from '@/gameplay/GameplayShell'
 
 function App() {
   const [step, setStep] = useState(0)
-  const [missionTags, setMissionTags] = useState<MissionTag[]>([])
-  const [enemyTags, setEnemyTags] = useState<EnemyTag[]>([])
-
-  const handleMissionNext = (tags: MissionTag[]) => {
-    setMissionTags(tags)
+  const handleMissionNext = () => {
     setStep(1)
   }
 
-  const handleEnemyStart = (tags: EnemyTag[]) => {
-    setEnemyTags(tags)
+  const handleEnemyStart = () => {
     setStep(2)
   }
 
@@ -62,20 +56,7 @@ function App() {
           )}
         </Card>
       ) : (
-        <Card className="mx-auto max-w-md space-y-4 p-6 text-center">
-          <h2 className="text-2xl font-bold">Setup Complete</h2>
-          <p className="text-gray-600 dark:text-gray-300">Gameplay shell coming soon.</p>
-          <div className="flex flex-wrap justify-center gap-1">
-            {missionTags.map((tag) => (
-              <Badge key={tag}>{tag}</Badge>
-            ))}
-            {enemyTags.map((tag) => (
-              <Badge key={tag} className="bg-gray-700 text-white">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        </Card>
+        <GameplayShell />
       )}
     </main>
   )
