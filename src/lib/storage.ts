@@ -5,6 +5,11 @@ export function getJSON<T>(key: string, fallback: T): T {
     if (!raw) return fallback
     return JSON.parse(raw) as T
   } catch {
+    try {
+      localStorage.removeItem(key)
+    } catch {
+      // ignore
+    }
     return fallback
   }
 }
