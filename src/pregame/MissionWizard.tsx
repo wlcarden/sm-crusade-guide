@@ -6,8 +6,15 @@ import { Badge } from '@/components/ui/badge'
 import { MISSION_RULES, PRIMARY_MISSIONS, DEPLOYMENTS } from '@/data/missions'
 import type { MissionTag, MissionRule, Primary, Deployment } from '@/data/types'
 
+interface MissionContext {
+  rule: MissionRule
+  primary: Primary
+  deployment: Deployment
+  tags: MissionTag[]
+}
+
 interface MissionWizardProps {
-  onNext: (tags: MissionTag[]) => void
+  onNext: (mission: MissionContext) => void
 }
 
 export function MissionWizard({ onNext }: MissionWizardProps) {
@@ -21,12 +28,13 @@ export function MissionWizard({ onNext }: MissionWizardProps) {
   }
 
   const handleNext = () => {
+    if (!rule || !primary || !deployment) return
     const tags: MissionTag[] = [
-      ...(rule?.tags ?? []),
-      ...(primary?.tags ?? []),
-      ...(deployment?.tags ?? []),
+      ...rule.tags,
+      ...primary.tags,
+      ...deployment.tags,
     ]
-    onNext(tags)
+    onNext({ rule, primary, deployment, tags })
   }
 
   const renderSection = <T extends { name: string; tip: string; tags: MissionTag[] }>(

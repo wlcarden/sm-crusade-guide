@@ -1,40 +1,173 @@
-import { useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Select, SelectItem } from '@/components/ui/select'
-import StratPane from './StratPane'
+import { useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectItem } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import PhasesTabs from "./PhasesTabs";
+import StratPane from "./StratPane"; // from PR H
 
-const PHASES = ['Command', 'Movement', 'Shooting', 'Charge', 'Fight', 'End']
+import type {
+  MissionRule,
+  Primary,
+  Deployment,
+  MissionTag,
+  EnemyTag,
+} from "@/data/types";
 
-export default function GameplayShell() {
-  const [phase, setPhase] = useState('Command')
-  const [detachment, setDetachment] = useState('Gladius')
+interface MissionContext {
+  rule: MissionRule;
+  primary: Primary;
+  deployment: Deployment;
+  tags: MissionTag[];
+}
+
+interface GameplayShellProps {
+  mission: MissionContext;
+  enemy: EnemyTag[];
+  onReset: () => void;
+}
+
+export function GameplayShell({ mission, enemy, onReset }: GameplayShellProps) {
+  const [turn, setTurn] = useState(1);
+  const [ourCp, setOurCp] = useState(0);
+  const [theirCp, setTheirCp] = useState(0);
+  const [goesFirst, setGoesFirst] = useState("us");
+
+  // Detachment selection for stratagem registry (from PR H)
+  const [detachment, setDetachment] = useState("Gladius");
 
   return (
-    <Card className="space-y-4 p-4">
-      <div className="flex items-center gap-2">
-        <span className="text-sm">Detachment</span>
-        <Select
-          value={detachment}
-          onValueChange={setDetachment}
-          className="w-40"
-        >
-          <SelectItem value="Gladius">Gladius</SelectItem>
-        </Select>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {PHASES.map((p) => (
+    <div className="space-y-6">
+      {/* Context header */}
+      <Card className="bg-zinc-800 text-white rounded-xl border-zinc-700">
+        <CardHeader>
+          <CardTitle>Context</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Badge className="bg-zinc-700 border-zinc-600">{mission.rule.name}</Badge>
+            <Badge className="bg-zinc-700 border-zinc-600">{mission.primary.name}</Badge>
+            <Badge className="bg-zinc-700 border-zinc-600">{mission.deployment.name}</Badge>
+          </div>
+          {enemy.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {enemy.map((tag) => (
+                <Badge key={tag} className="bg-zinc-700 border-zinc-600">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Turn / CP panel */}
+      <Card className="bg-zinc-800 text-white rounded-xl border-zinc-700 p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">Turn</span>
           <Button
-            key={p}
-            variant={phase === p ? 'default' : 'outline'}
-            onClick={() => setPhase(p)}
-            className="flex-1"
+            variant="secondary"
+            size="icon"
+            onClick={() => setTurn((t) => Math.max(1, t - 1))}
           >
-            {p}
+            -
           </Button>
-        ))}
-      </div>
-      <StratPane detachment={detachment} />
-    </Card>
-  )
+        <span className="w-8 text-center">{turn}</span>
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => setTurn((t) => Math.min(5, t + 1))}
+          >
+            +
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap gap-6">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Our CP</span>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => setOurCp((c) => Math.max(0, c - 1))}
+            >
+              -
+            </Button>
+            <input
+              type="number"
+              value={ourCp}
+              onChange={(e) =>
+                setOurCp(Math.max(0, parseInt(e.target.value) || 0))
+              }
+              className="w-16 rounded bg-zinc-700 text-center"
+            />
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => setOurCp((c) => c + 1)}
+            >
+              +
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Their CP</span>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => setTheirCp((c) => Math.max(0, c - 1))}
+            >
+              -
+            </Button>
+            <input
+              type="number"
+              value={theirCp}
+              onChange={(e) =>
+                setTheirCp(Math.max(0, parseInt(e.target.value) || 0))
+              }
+              className="w-16 rounded bg-zinc-700 text-center"
+            />
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => setTheirCp((c) => c + 1)}
+            >
+              +
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="font-medium">Who goes first</span>
+          <Select
+            value={goesFirst}
+            onValueChange={setGoesFirst}
+            className="bg-zinc-700 text-white"
+          >
+            <SelectItem value="us">Us</SelectItem>
+            <SelectItem value="them">Them</SelectItem>
+          </Select>
+        </div>
+      </Card>
+
+      {/* Phases (placeholder for now) */}
+      <PhasesTabs />
+
+      {/* Stratagems pane (from PR H) */}
+      <Card className="bg-zinc-800 text-white rounded-xl border-zinc-700 p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">Detachment</span>
+          <Select value={detachment} onValueChange={setDetachment} className="w-40">
+            <SelectItem value="Gladius">Gladius</SelectItem>
+          </Select>
+        </div>
+        <StratPane detachment={detachment} />
+      </Card>
+
+      <Button variant="outline" onClick={onReset}>
+        Reset Match
+      </Button>
+    </div>
+  );
 }
+
+export default GameplayShell;
