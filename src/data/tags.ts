@@ -15,6 +15,8 @@ export const TAG_META: Record<string, TagMeta> = {
   'long-range-at':     { key: 'long-range-at', category: 'unit', severity: 3 },
   'fast-melee':        { key: 'fast-melee', category: 'unit', severity: 2 },
   'melee-brick':       { key: 'melee-brick', category: 'unit', severity: 3 },
+  'vehicle':           { key: 'vehicle', category: 'unit', severity: 2 },
+  'durable':           { key: 'durable', category: 'unit', severity: 2 },
   'transport':         { key: 'transport', category: 'unit', severity: 2 },
   'transport-push':    { key: 'transport-push', category: 'unit', severity: 2 },
   'gunline':           { key: 'gunline', category: 'unit', severity: 2 },
@@ -29,6 +31,8 @@ export const TAG_META: Record<string, TagMeta> = {
   'minus1-damage':     { key: 'minus1-damage', category: 'unit', severity: 2 },
   'return-models':     { key: 'return-models', category: 'unit', severity: 2 },
   'advance-and-charge':{ key: 'advance-and-charge', category: 'unit', severity: 2 },
+  'skirmish-units':    { key: 'skirmish-units', category: 'unit', severity: 1 },
+  'horde-oc':          { key: 'horde-oc', category: 'unit', severity: 2 },
 
   // --- mission properties ---
   'action-pressure':   { key: 'action-pressure', category: 'mission', severity: 2 },

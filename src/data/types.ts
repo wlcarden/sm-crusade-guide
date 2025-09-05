@@ -14,7 +14,7 @@ export const EnemyTag = {
   Fast: 'fast',
   Psyker: 'psyker',
 } as const
-export type EnemyTag = (typeof EnemyTag)[keyof typeof EnemyTag]
+export type EnemyTag = string
 
 export const StratPhase = {
   Movement: 'movement',
