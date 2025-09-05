@@ -1,38 +1,44 @@
-import { useState } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Select, SelectItem } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import PhasesTabs from './PhasesTabs'
+import { useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectItem } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import PhasesTabs from "./PhasesTabs";
+import StratPane from "./StratPane"; // from PR H
+
 import type {
   MissionRule,
   Primary,
   Deployment,
   MissionTag,
   EnemyTag,
-} from '@/data/types'
+} from "@/data/types";
 
 interface MissionContext {
-  rule: MissionRule
-  primary: Primary
-  deployment: Deployment
-  tags: MissionTag[]
+  rule: MissionRule;
+  primary: Primary;
+  deployment: Deployment;
+  tags: MissionTag[];
 }
 
 interface GameplayShellProps {
-  mission: MissionContext
-  enemy: EnemyTag[]
-  onReset: () => void
+  mission: MissionContext;
+  enemy: EnemyTag[];
+  onReset: () => void;
 }
 
 export function GameplayShell({ mission, enemy, onReset }: GameplayShellProps) {
-  const [turn, setTurn] = useState(1)
-  const [ourCp, setOurCp] = useState(0)
-  const [theirCp, setTheirCp] = useState(0)
-  const [goesFirst, setGoesFirst] = useState('us')
+  const [turn, setTurn] = useState(1);
+  const [ourCp, setOurCp] = useState(0);
+  const [theirCp, setTheirCp] = useState(0);
+  const [goesFirst, setGoesFirst] = useState("us");
+
+  // Detachment selection for stratagem registry (from PR H)
+  const [detachment, setDetachment] = useState("Gladius");
 
   return (
     <div className="space-y-6">
+      {/* Context header */}
       <Card className="bg-zinc-800 text-white rounded-xl border-zinc-700">
         <CardHeader>
           <CardTitle>Context</CardTitle>
@@ -55,6 +61,7 @@ export function GameplayShell({ mission, enemy, onReset }: GameplayShellProps) {
         </CardContent>
       </Card>
 
+      {/* Turn / CP panel */}
       <Card className="bg-zinc-800 text-white rounded-xl border-zinc-700 p-4 space-y-4">
         <div className="flex items-center gap-2">
           <span className="font-medium">Turn</span>
@@ -65,7 +72,7 @@ export function GameplayShell({ mission, enemy, onReset }: GameplayShellProps) {
           >
             -
           </Button>
-          <span className="w-8 text-center">{turn}</span>
+        <span className="w-8 text-center">{turn}</span>
           <Button
             variant="secondary"
             size="icon"
@@ -142,13 +149,25 @@ export function GameplayShell({ mission, enemy, onReset }: GameplayShellProps) {
         </div>
       </Card>
 
+      {/* Phases (placeholder for now) */}
       <PhasesTabs />
+
+      {/* Stratagems pane (from PR H) */}
+      <Card className="bg-zinc-800 text-white rounded-xl border-zinc-700 p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">Detachment</span>
+          <Select value={detachment} onValueChange={setDetachment} className="w-40">
+            <SelectItem value="Gladius">Gladius</SelectItem>
+          </Select>
+        </div>
+        <StratPane detachment={detachment} />
+      </Card>
 
       <Button variant="outline" onClick={onReset}>
         Reset Match
       </Button>
     </div>
-  )
+  );
 }
 
-export default GameplayShell
+export default GameplayShell;
