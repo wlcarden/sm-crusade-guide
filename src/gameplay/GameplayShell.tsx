@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem } from "@/components/ui/select";
@@ -7,6 +7,7 @@ import PhasesTabs from "./PhasesTabs";
 import StratPane from "./StratPane"; // from PR H
 import AdvicePane from "./AdvicePane";
 import { BASIC_SM_ADVICE } from "@/data/advice";
+import { getJSON, setJSON } from "@/lib/storage";
 
 import type {
   MissionRule,
@@ -27,13 +28,20 @@ interface GameplayShellProps {
   mission: MissionContext;
   unitTags?: EnemyTag[];
   enemy?: EnemyTag[];
+  matchKey: string;
   onReset: () => void;
 }
 
 const PHASES = ["command", "movement", "shooting", "charge", "fight", "end"] as const;
 type Phase = (typeof PHASES)[number];
 
-export function GameplayShell({ mission, unitTags, enemy, onReset }: GameplayShellProps) {
+export function GameplayShell({
+  mission,
+  unitTags,
+  enemy,
+  matchKey,
+  onReset,
+}: GameplayShellProps) {
   const [turn, setTurn] = useState(1);
   const [ourCp, setOurCp] = useState(0);
   const [theirCp, setTheirCp] = useState(0);
@@ -47,6 +55,40 @@ export function GameplayShell({ mission, unitTags, enemy, onReset }: GameplayShe
 
   // Detachment selection for stratagem registry (from PR H)
   const [detachment, setDetachment] = useState("Gladius");
+
+  useEffect(() => {
+    const saved = getJSON<{
+      turn: number;
+      goesFirst: "us" | "them";
+      ourCp: number;
+      theirCp: number;
+      phase: Phase;
+      detachment?: string;
+    }>(`smcg.match.${matchKey}.game`, {
+      turn: 1,
+      goesFirst: "us",
+      ourCp: 0,
+      theirCp: 0,
+      phase: PHASES[0],
+    });
+    setTurn(saved.turn ?? 1);
+    setGoesFirst(saved.goesFirst ?? "us");
+    setOurCp(saved.ourCp ?? 0);
+    setTheirCp(saved.theirCp ?? 0);
+    setActivePhase(saved.phase ?? PHASES[0]);
+    if (saved.detachment) setDetachment(saved.detachment);
+  }, [matchKey]);
+
+  useEffect(() => {
+    setJSON(`smcg.match.${matchKey}.game`, {
+      turn,
+      goesFirst,
+      ourCp,
+      theirCp,
+      phase: activePhase,
+      detachment,
+    });
+  }, [turn, goesFirst, ourCp, theirCp, activePhase, detachment, matchKey]);
 
   return (
     <div className="space-y-6">
@@ -185,7 +227,13 @@ export function GameplayShell({ mission, unitTags, enemy, onReset }: GameplayShe
           cp: ourCp,
         };
 
-        return <AdvicePane ctx={adviceCtx} cards={BASIC_SM_ADVICE} />;
+        return (
+          <AdvicePane
+            ctx={adviceCtx}
+            cards={BASIC_SM_ADVICE}
+            matchKey={matchKey}
+          />
+        );
       })()}
 
       {/* Stratagems pane (from PR H) */}
