@@ -5,6 +5,8 @@ import { Select, SelectItem } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import PhasesTabs from "./PhasesTabs";
 import StratPane from "./StratPane"; // from PR H
+import AdvicePane from "./AdvicePane";
+import { BASIC_SM_ADVICE } from "@/data/advice";
 
 import type {
   MissionRule,
@@ -23,15 +25,25 @@ interface MissionContext {
 
 interface GameplayShellProps {
   mission: MissionContext;
-  enemy: EnemyTag[];
+  unitTags?: EnemyTag[];
+  enemy?: EnemyTag[];
   onReset: () => void;
 }
 
-export function GameplayShell({ mission, enemy, onReset }: GameplayShellProps) {
+const PHASES = ["command", "movement", "shooting", "charge", "fight", "end"] as const;
+type Phase = (typeof PHASES)[number];
+
+export function GameplayShell({ mission, unitTags, enemy, onReset }: GameplayShellProps) {
   const [turn, setTurn] = useState(1);
   const [ourCp, setOurCp] = useState(0);
   const [theirCp, setTheirCp] = useState(0);
   const [goesFirst, setGoesFirst] = useState("us");
+  const [activePhase, setActivePhase] = useState<Phase>(PHASES[0]);
+  const unitTagArray = Array.isArray(unitTags)
+    ? unitTags
+    : Array.isArray(enemy)
+    ? enemy
+    : [];
 
   // Detachment selection for stratagem registry (from PR H)
   const [detachment, setDetachment] = useState("Gladius");
@@ -49,9 +61,9 @@ export function GameplayShell({ mission, enemy, onReset }: GameplayShellProps) {
             <Badge className="bg-zinc-700 border-zinc-600">{mission.primary.name}</Badge>
             <Badge className="bg-zinc-700 border-zinc-600">{mission.deployment.name}</Badge>
           </div>
-          {enemy.length > 0 && (
+          {unitTagArray.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
-              {enemy.map((tag) => (
+              {unitTagArray.map((tag) => (
                 <Badge key={tag} className="bg-zinc-700 border-zinc-600">
                   {tag}
                 </Badge>
@@ -149,8 +161,32 @@ export function GameplayShell({ mission, enemy, onReset }: GameplayShellProps) {
         </div>
       </Card>
 
-      {/* Phases (placeholder for now) */}
-      <PhasesTabs />
+      {/* Phases */}
+      <PhasesTabs active={activePhase} onChange={setActivePhase} />
+
+      {/* Advice */}
+      {(() => {
+        const missionTagKeys = mission?.tags ?? [];
+        const tagSet = new Set<string>([...missionTagKeys, ...unitTagArray]);
+
+        const isOurTurn = (() => {
+          const firstIsUs = goesFirst === "us";
+          const odd = turn % 2 === 1;
+          return (firstIsUs && odd) || (!firstIsUs && !odd);
+        })();
+        const windowCtx = isOurTurn ? "my" : "opp";
+
+        const adviceCtx = {
+          forces: { ours: new Set<string>(), enemy: new Set(unitTagArray) },
+          ambient: tagSet,
+          phase: activePhase,
+          window: windowCtx as "my" | "opp",
+          turn,
+          cp: ourCp,
+        };
+
+        return <AdvicePane ctx={adviceCtx} cards={BASIC_SM_ADVICE} />;
+      })()}
 
       {/* Stratagems pane (from PR H) */}
       <Card className="bg-zinc-800 text-white rounded-xl border-zinc-700 p-4 space-y-4">

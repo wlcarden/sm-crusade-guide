@@ -88,7 +88,7 @@ function App() {
         mission && (
           <GameplayShell
             mission={mission}
-            enemy={enemyTags}
+            unitTags={enemyTags}
             onReset={() => {
               setStep(0);
               setMission(null);
