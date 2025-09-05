@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ENEMY_CORE, ENEMY_DETS } from '@/data/enemy'
 import type { EnemyDetachment, EnemyFaction, EnemyTag, EnemyUnitRef } from '@/data/types'
+import { unitsForFaction, getUnitByName } from '@/data/catalog'
 import { Select, SelectItem } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,13 +16,39 @@ export function EnemySelector({ onStart }: EnemySelectorProps) {
   const [faction, setFaction] = useState<EnemyFaction | ''>('')
   const [detachmentIndex, setDetachmentIndex] = useState<number | null>(null)
   const [selectedUnits, setSelectedUnits] = useState<string[]>([])
-
   const detachments: EnemyDetachment[] = faction ? ENEMY_DETS[faction] : []
   const detachment =
     detachmentIndex !== null ? detachments[detachmentIndex] : undefined
 
-  const coreUnits: EnemyUnitRef[] = faction ? ENEMY_CORE[faction] : []
-  const detachmentAdds: EnemyUnitRef[] = detachment?.adds ?? []
+  const FACTION_LABELS: Record<EnemyFaction, string> = {
+    CSM: 'Chaos Space Marines',
+    SM: 'Space Marines',
+    NECRONS: 'Necrons',
+    TYRANIDS: 'Tyranids',
+  }
+
+  const catalogFaction = faction ? FACTION_LABELS[faction] : undefined
+
+  const baseCore: EnemyUnitRef[] = faction ? ENEMY_CORE[faction] : []
+  const catalogUnits = catalogFaction ? unitsForFaction(catalogFaction) : []
+  const coreNameSet = new Set(baseCore.map((u) => u.name))
+  const threatMap = new Map(baseCore.map((u) => [u.name, u.threat]))
+  const coreUnits: EnemyUnitRef[] =
+    catalogUnits.length && coreNameSet.size
+      ? catalogUnits
+          .filter((u) => coreNameSet.has(u.name))
+          .map((u) => ({
+            name: u.name,
+            threat: threatMap.get(u.name) || '',
+            tags: u.tags,
+          }))
+      : catalogUnits.map((u) => ({ name: u.name, threat: '', tags: u.tags }))
+
+  const detachmentAdds: EnemyUnitRef[] = (detachment?.adds ?? []).map((add) => ({
+    ...add,
+    tags: catalogFaction ? getUnitByName(add.name, catalogFaction)?.tags ?? [] : [],
+  }))
+
   const units = [...coreUnits, ...detachmentAdds]
 
   const toggleUnit = (name: string) => {

@@ -1,21 +1,25 @@
 import type { EnemyDetachment, EnemyUnitRef } from '../types'
-import { EnemyTag, StratPhase, TurnWindow } from '../types'
+import { StratPhase, TurnWindow } from '../types'
+import { getUnitByName } from '../catalog'
+
+const faction = 'Chaos Space Marines'
+const lookup = (name: string) => getUnitByName(name, faction)?.tags ?? []
 
 export const ENEMY_CORE_CSM: EnemyUnitRef[] = [
   {
     name: 'Abaddon the Despoiler',
     threat: 'Durable melee character with reroll aura.',
-    tags: [EnemyTag.Durable, EnemyTag.Melee],
+    tags: lookup('Abaddon the Despoiler'),
   },
   {
     name: 'Obliterators',
     threat: 'High damage ranged attacks, teleport.',
-    tags: [EnemyTag.Shooting],
+    tags: lookup('Obliterators'),
   },
   {
     name: 'Chaos Spawn',
     threat: 'Fast objective grabbers.',
-    tags: [EnemyTag.Fast],
+    tags: lookup('Chaos Spawn'),
   },
 ]
 
@@ -26,7 +30,7 @@ export const ENEMY_DETS_CSM: EnemyDetachment[] = [
       {
         name: 'Chosen',
         threat: 'Elite infantry with strong melee.',
-        tags: [EnemyTag.Melee],
+        tags: lookup('Chosen'),
       },
     ],
     defaultTraits: [
@@ -35,7 +39,7 @@ export const ENEMY_DETS_CSM: EnemyDetachment[] = [
         phase: StratPhase.Any,
         window: TurnWindow.Any,
         tip: 'Enhance attacks at the risk of mortal wounds.',
-        tags: [EnemyTag.Melee],
+        tags: ['melee-brick'],
       },
     ],
   },
@@ -45,7 +49,7 @@ export const ENEMY_DETS_CSM: EnemyDetachment[] = [
       {
         name: 'Havocs',
         threat: 'Heavy weapon squad excels at killing vehicles.',
-        tags: [EnemyTag.Shooting],
+        tags: lookup('Havocs'),
       },
     ],
     defaultTraits: [
@@ -54,7 +58,7 @@ export const ENEMY_DETS_CSM: EnemyDetachment[] = [
         phase: StratPhase.Shooting,
         window: TurnWindow.Opponent,
         tip: 'Punish attacking their fortifications.',
-        tags: [EnemyTag.Shooting],
+        tags: ['long-range-at'],
       },
     ],
   },
