@@ -7,6 +7,7 @@ export type UnitRef = {
   tags: UnitTag[]
   detachmentKeys?: string[]
   wahapedia?: string
+  evidence?: string[]
 }
 
 export type UnitCatalog = Record<string, UnitRef>
