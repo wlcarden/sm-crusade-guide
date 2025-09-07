@@ -1,12 +1,20 @@
 import { useState } from 'react'
 import { ENEMY_CORE, ENEMY_DETS } from '@/data/enemy'
 import type { EnemyDetachment, EnemyFaction, EnemyTag, EnemyUnitRef } from '@/data/types'
-import { unitsForFaction, getUnitByName } from '@/data/catalog'
+import { CSM_CATALOG_PART } from '@/data/catalog'
+import type { UnitCatalog, UnitRef as CatalogUnit } from '@/data/catalog/types'
 import { Select, SelectItem } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib'
+
+const CATALOG_PARTS: Record<EnemyFaction, UnitCatalog | undefined> = {
+  CSM: CSM_CATALOG_PART,
+  SM: undefined,
+  NECRONS: undefined,
+  TYRANIDS: undefined,
+}
 
 interface EnemySelectorProps {
   onStart: (tags: EnemyTag[]) => void
@@ -20,36 +28,30 @@ export function EnemySelector({ onStart }: EnemySelectorProps) {
   const detachment =
     detachmentIndex !== null ? detachments[detachmentIndex] : undefined
 
-  const FACTION_LABELS: Record<EnemyFaction, string> = {
-    CSM: 'Chaos Space Marines',
-    SM: 'Space Marines',
-    NECRONS: 'Necrons',
-    TYRANIDS: 'Tyranids',
-  }
-
-  const catalogFaction = faction ? FACTION_LABELS[faction] : undefined
+  const catalog = faction ? CATALOG_PARTS[faction] : undefined
+  const catalogUnitMap = catalog
+    ? new Map<string, CatalogUnit>(
+        Object.values(catalog).map((u) => [u.name, u]),
+      )
+    : new Map<string, CatalogUnit>()
 
   const baseCore: EnemyUnitRef[] = faction ? ENEMY_CORE[faction] : []
-  const catalogUnits = catalogFaction ? unitsForFaction(catalogFaction) : []
-  const coreNameSet = new Set(baseCore.map((u) => u.name))
-  const threatMap = new Map(baseCore.map((u) => [u.name, u.threat]))
-  const coreUnits: EnemyUnitRef[] =
-    catalogUnits.length && coreNameSet.size
-      ? catalogUnits
-          .filter((u) => coreNameSet.has(u.name))
-          .map((u) => ({
-            name: u.name,
-            threat: threatMap.get(u.name) || '',
-            tags: u.tags,
-          }))
-      : catalogUnits.map((u) => ({ name: u.name, threat: '', tags: u.tags }))
 
-  const detachmentAdds: EnemyUnitRef[] = (detachment?.adds ?? []).map((add) => ({
-    ...add,
-    tags: catalogFaction ? getUnitByName(add.name, catalogFaction)?.tags ?? [] : [],
-  }))
+  interface EnemyUnitWithEvidence extends EnemyUnitRef {
+    evidence?: string[]
+  }
 
-  const units = [...coreUnits, ...detachmentAdds]
+  const coreUnits: EnemyUnitWithEvidence[] = baseCore.map((u) => {
+    const cu = catalogUnitMap.get(u.name)
+    return { ...u, tags: cu?.tags ?? u.tags, evidence: cu?.evidence }
+  })
+
+  const detachmentAdds: EnemyUnitWithEvidence[] = (detachment?.adds ?? []).map((add) => {
+    const cu = catalogUnitMap.get(add.name)
+    return { ...add, tags: cu?.tags ?? add.tags, evidence: cu?.evidence }
+  })
+
+  const units: EnemyUnitWithEvidence[] = [...coreUnits, ...detachmentAdds]
 
   const toggleUnit = (name: string) => {
     setSelectedUnits((prev) =>
@@ -135,8 +137,25 @@ export function EnemySelector({ onStart }: EnemySelectorProps) {
                   )}
                   onClick={() => toggleUnit(u.name)}
                 >
-                  <CardHeader>
+                  <CardHeader className="flex items-start justify-between">
                     <CardTitle>{u.name}</CardTitle>
+                    {u.evidence && u.evidence.length > 0 && (
+                      <div className="relative group">
+                        <span
+                          tabIndex={0}
+                          className="inline-block w-4 h-4 text-center rounded-full bg-gray-600 text-white text-xs leading-4 cursor-help"
+                        >
+                          i
+                        </span>
+                        <div className="absolute z-10 hidden w-64 p-2 text-xs text-white bg-gray-900 rounded shadow-lg right-0 top-5 group-hover:block group-focus-within:block">
+                          <ul className="list-disc pl-4 space-y-1">
+                            {u.evidence.map((e) => (
+                              <li key={e}>{e}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm mb-2">{u.threat}</p>

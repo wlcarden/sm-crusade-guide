@@ -1,5 +1,6 @@
 import type { UnitRef, UnitCatalog } from './types'
 import { CSM_CATALOG_PART } from './csm'
+export { CSM_CATALOG_PART } from './csm'
 
 export const CATALOG_BY_FACTION: Record<string, UnitCatalog> = {
   'Chaos Space Marines': CSM_CATALOG_PART,
