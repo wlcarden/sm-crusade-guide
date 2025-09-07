@@ -1,25 +1,20 @@
 import type { EnemyDetachment, EnemyUnitRef } from '../types'
 import { StratPhase, TurnWindow } from '../types'
-import { getUnitByName } from '../catalog'
-
-const faction = 'Chaos Space Marines'
-const lookup = (name: string) => getUnitByName(name, faction)?.tags ?? []
 
 export const ENEMY_CORE_CSM: EnemyUnitRef[] = [
   {
     name: 'Abaddon the Despoiler',
     threat: 'Durable melee character with reroll aura.',
-    tags: lookup('Abaddon the Despoiler'),
+    tags: ['durable', 'melee'],
   },
   {
     name: 'Obliterators',
     threat: 'High damage ranged attacks, teleport.',
-    tags: lookup('Obliterators'),
   },
   {
     name: 'Chaos Spawn',
     threat: 'Fast objective grabbers.',
-    tags: lookup('Chaos Spawn'),
+    tags: ['fast'],
   },
 ]
 
@@ -30,7 +25,7 @@ export const ENEMY_DETS_CSM: EnemyDetachment[] = [
       {
         name: 'Chosen',
         threat: 'Elite infantry with strong melee.',
-        tags: lookup('Chosen'),
+        tags: ['melee'],
       },
     ],
     defaultTraits: [
@@ -49,7 +44,6 @@ export const ENEMY_DETS_CSM: EnemyDetachment[] = [
       {
         name: 'Havocs',
         threat: 'Heavy weapon squad excels at killing vehicles.',
-        tags: lookup('Havocs'),
       },
     ],
     defaultTraits: [
