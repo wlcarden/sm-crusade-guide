@@ -33,6 +33,13 @@ export const TAG_META: Record<string, TagMeta> = {
   'advance-and-charge':{ key: 'advance-and-charge', category: 'unit', severity: 2 },
   'skirmish-units':    { key: 'skirmish-units', category: 'unit', severity: 1 },
   'horde-oc':          { key: 'horde-oc', category: 'unit', severity: 2 },
+  'fnp':               { key: 'fnp', category: 'unit', severity: 2 },
+  'walker':            { key: 'walker', category: 'unit', severity: 1 },
+  'sticky-obj':        { key: 'sticky-obj', category: 'unit', severity: 2 },
+  'on-shot-move':      { key: 'on-shot-move', category: 'unit', severity: 2 },
+  'short-range-at':    { key: 'short-range-at', category: 'unit', severity: 2 },
+  'siege-at':          { key: 'siege-at', category: 'unit', severity: 2 },
+  'post-combat-extract': { key: 'post-combat-extract', category: 'unit', severity: 2 },
 
   // --- mission properties ---
   'action-pressure':   { key: 'action-pressure', category: 'mission', severity: 2 },
