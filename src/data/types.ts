@@ -61,7 +61,7 @@ export type EnemyFaction = (typeof EnemyFaction)[keyof typeof EnemyFaction]
 export interface EnemyUnitRef {
   name: string
   threat: string
-  tags: EnemyTag[]
+  tags?: EnemyTag[]
 }
 
 export interface Stratagem {

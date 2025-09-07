@@ -1,20 +1,13 @@
 import { useState } from 'react'
 import { ENEMY_CORE, ENEMY_DETS } from '@/data/enemy'
 import type { EnemyDetachment, EnemyFaction, EnemyTag, EnemyUnitRef } from '@/data/types'
-import { CSM_CATALOG_PART } from '@/data/catalog'
-import type { UnitCatalog, UnitRef as CatalogUnit } from '@/data/catalog/types'
+import { getFactionCatalogByName, normalizeName } from '@/data/catalog'
+import type { UnitRef as CatalogUnit } from '@/data/catalog/types'
 import { Select, SelectItem } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib'
-
-const CATALOG_PARTS: Record<EnemyFaction, UnitCatalog | undefined> = {
-  CSM: CSM_CATALOG_PART,
-  SM: undefined,
-  NECRONS: undefined,
-  TYRANIDS: undefined,
-}
 
 interface EnemySelectorProps {
   onStart: (tags: EnemyTag[]) => void
@@ -28,28 +21,39 @@ export function EnemySelector({ onStart }: EnemySelectorProps) {
   const detachment =
     detachmentIndex !== null ? detachments[detachmentIndex] : undefined
 
-  const catalog = faction ? CATALOG_PARTS[faction] : undefined
-  const catalogUnitMap = catalog
-    ? new Map<string, CatalogUnit>(
-        Object.values(catalog).map((u) => [u.name, u]),
-      )
-    : new Map<string, CatalogUnit>()
+  const catalogUnitMap: Map<string, CatalogUnit> = faction
+    ? getFactionCatalogByName(faction)
+    : new Map()
 
   const baseCore: EnemyUnitRef[] = faction ? ENEMY_CORE[faction] : []
 
   interface EnemyUnitWithEvidence extends EnemyUnitRef {
+    tags: EnemyTag[]
     evidence?: string[]
   }
 
   const coreUnits: EnemyUnitWithEvidence[] = baseCore.map((u) => {
-    const cu = catalogUnitMap.get(u.name)
-    return { ...u, tags: cu?.tags ?? u.tags, evidence: cu?.evidence }
+    const cu =
+      catalogUnitMap.get(u.name) || catalogUnitMap.get(normalizeName(u.name))
+    return {
+      ...u,
+      tags: cu?.tags ?? u.tags ?? [],
+      evidence: cu?.evidence?.slice(0, 3),
+    }
   })
 
-  const detachmentAdds: EnemyUnitWithEvidence[] = (detachment?.adds ?? []).map((add) => {
-    const cu = catalogUnitMap.get(add.name)
-    return { ...add, tags: cu?.tags ?? add.tags, evidence: cu?.evidence }
-  })
+  const detachmentAdds: EnemyUnitWithEvidence[] = (detachment?.adds ?? []).map(
+    (add) => {
+      const cu =
+        catalogUnitMap.get(add.name) ||
+        catalogUnitMap.get(normalizeName(add.name))
+      return {
+        ...add,
+        tags: cu?.tags ?? add.tags ?? [],
+        evidence: cu?.evidence?.slice(0, 3),
+      }
+    },
+  )
 
   const units: EnemyUnitWithEvidence[] = [...coreUnits, ...detachmentAdds]
 
@@ -70,7 +74,7 @@ export function EnemySelector({ onStart }: EnemySelectorProps) {
 
     units.forEach((u) => {
       if (selectedUnits.includes(u.name)) {
-        u.tags.forEach((tag) => tagSet.add(tag))
+        ;(u.tags ?? []).forEach((tag) => tagSet.add(tag))
       }
     })
 
